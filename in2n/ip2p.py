@@ -47,12 +47,14 @@ CONST_SCALE = 0.18215
 DDIM_SOURCE = "CompVis/stable-diffusion-v1-4"
 SD_SOURCE = "runwayml/stable-diffusion-v1-5"
 CLIP_SOURCE = "openai/clip-vit-large-patch14"
-IP2P_SOURCE = "timbrooks/instruct-pix2pix"
+# IP2P_SOURCE = "timbrooks/instruct-pix2pix"
+IP2P_SOURCE = "osunlp/InstructPix2Pix-MagicBrush"
 
 
 @dataclass
 class UNet2DConditionOutput:
     sample: torch.FloatTensor
+
 
 class InstructPix2Pix(nn.Module):
     """InstructPix2Pix implementation
@@ -61,14 +63,16 @@ class InstructPix2Pix(nn.Module):
         num_train_timesteps: number of training timesteps
     """
 
-    def __init__(self, device: Union[torch.device, str], num_train_timesteps: int = 1000, ip2p_use_full_precision=False) -> None:
+    def __init__(self, device: Union[torch.device, str], num_train_timesteps: int = 1000,
+                 ip2p_use_full_precision=False) -> None:
         super().__init__()
 
         self.device = device
         self.num_train_timesteps = num_train_timesteps
         self.ip2p_use_full_precision = ip2p_use_full_precision
 
-        pipe = StableDiffusionInstructPix2PixPipeline.from_pretrained(IP2P_SOURCE, torch_dtype=torch.float16, safety_checker=None)
+        pipe = StableDiffusionInstructPix2PixPipeline.from_pretrained(IP2P_SOURCE, torch_dtype=torch.float16,
+                                                                      safety_checker=None)
         pipe.scheduler = DDIMScheduler.from_pretrained(DDIM_SOURCE, subfolder="scheduler")
         pipe.scheduler.set_timesteps(100)
         assert pipe is not None
@@ -101,15 +105,15 @@ class InstructPix2Pix(nn.Module):
         CONSOLE.print("InstructPix2Pix loaded!")
 
     def edit_image(
-        self,
-        text_embeddings: Float[Tensor, "N max_length embed_dim"],
-        image: Float[Tensor, "BS 3 H W"],
-        image_cond: Float[Tensor, "BS 3 H W"],
-        guidance_scale: float = 7.5,
-        image_guidance_scale: float = 1.5,
-        diffusion_steps: int = 20,
-        lower_bound: float = 0.70,
-        upper_bound: float = 0.98
+            self,
+            text_embeddings: Float[Tensor, "N max_length embed_dim"],
+            image: Float[Tensor, "BS 3 H W"],
+            image_cond: Float[Tensor, "BS 3 H W"],
+            guidance_scale: float = 7.5,
+            image_guidance_scale: float = 1.5,
+            diffusion_steps: int = 20,
+            lower_bound: float = 0.70,
+            upper_bound: float = 0.98
     ) -> torch.Tensor:
         """Edit an image for Instruct-NeRF2NeRF using InstructPix2Pix
         Args:
@@ -130,7 +134,7 @@ class InstructPix2Pix(nn.Module):
 
         # select t, set multi-step diffusion
         T = torch.randint(min_step, max_step + 1, [1], dtype=torch.long, device=self.device)
-        
+
         self.scheduler.config.num_train_timesteps = T.item()
         self.scheduler.set_timesteps(diffusion_steps)
 
@@ -143,9 +147,9 @@ class InstructPix2Pix(nn.Module):
         noise = torch.randn_like(latents)
         latents = self.scheduler.add_noise(latents, noise, self.scheduler.timesteps[0])  # type: ignore
 
-        # sections of code used from https://github.com/huggingface/diffusers/blob/main/src/diffusers/pipelines/stable_diffusion/pipeline_stable_diffusion_instruct_pix2pix.py
+        # sections of code used from
+        # https://github.com/huggingface/diffusers/blob/main/src/diffusers/pipelines/stable_diffusion/pipeline_stable_diffusion_instruct_pix2pix.py
         for i, t in enumerate(self.scheduler.timesteps):
-
             # predict the noise residual with unet, NO grad!
             with torch.no_grad():
                 # pred noise
@@ -157,9 +161,9 @@ class InstructPix2Pix(nn.Module):
             # perform classifier-free guidance
             noise_pred_text, noise_pred_image, noise_pred_uncond = noise_pred.chunk(3)
             noise_pred = (
-                noise_pred_uncond
-                + guidance_scale * (noise_pred_text - noise_pred_image)
-                + image_guidance_scale * (noise_pred_image - noise_pred_uncond)
+                    noise_pred_uncond
+                    + guidance_scale * (noise_pred_text - noise_pred_image)
+                    + image_guidance_scale * (noise_pred_image - noise_pred_uncond)
             )
 
             # get previous sample, continue loop
