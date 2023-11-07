@@ -62,17 +62,18 @@ class InstructPix2Pix(nn.Module):
         device: device to use
         num_train_timesteps: number of training timesteps
     """
-
-    def __init__(self, device: Union[torch.device, str], num_train_timesteps: int = 1000,
-                 ip2p_use_full_precision=False) -> None:
+    def __init__(
+        self, device: Union[torch.device, str], num_train_timesteps: int = 1000, ip2p_use_full_precision=False
+    ) -> None:
         super().__init__()
 
         self.device = device
         self.num_train_timesteps = num_train_timesteps
         self.ip2p_use_full_precision = ip2p_use_full_precision
 
-        pipe = StableDiffusionInstructPix2PixPipeline.from_pretrained(IP2P_SOURCE, torch_dtype=torch.float16,
-                                                                      safety_checker=None)
+        pipe = StableDiffusionInstructPix2PixPipeline.from_pretrained(
+            IP2P_SOURCE, torch_dtype=torch.float16, safety_checker=None
+        )
         pipe.scheduler = DDIMScheduler.from_pretrained(DDIM_SOURCE, subfolder="scheduler")
         pipe.scheduler.set_timesteps(100)
         assert pipe is not None
