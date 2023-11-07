@@ -47,8 +47,8 @@ CONST_SCALE = 0.18215
 DDIM_SOURCE = "CompVis/stable-diffusion-v1-4"
 SD_SOURCE = "runwayml/stable-diffusion-v1-5"
 CLIP_SOURCE = "openai/clip-vit-large-patch14"
-IP2P_SOURCE = "timbrooks/instruct-pix2pix"
-# IP2P_SOURCE = "instruction-tuning-sd/cartoonizer"
+# IP2P_SOURCE = "timbrooks/instruct-pix2pix"
+IP2P_SOURCE = "instruction-tuning-sd/cartoonizer"
 
 
 @dataclass
