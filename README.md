@@ -1,3 +1,7 @@
+# Instruct-NeRF2NeRF-cartoonizer: Enhancing 3D Scenes
+![results](imgs/in2n_results.png)
+
+
 # Instruct-NeRF2NeRF: Editing 3D Scenes with Instructions
 
 This is the official implementation of [Instruct-NeRF2NeRF](https://instruct-nerf2nerf.github.io/).
